@@ -1,20 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import People from "./components/People";
-import Person from "./components/Person";
 import PhoneBookForm from "./components/PhoneBookForm";
 import Search from "./components/Search";
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", phoneNumber: "040-123456", id: 1 },
-    { name: "Ada Lovelace", phoneNumber: "39-44-5323523", id: 2 },
-    { name: "Dan Abramov", phoneNumber: "12-43-234345", id: 3 },
-    { name: "Mary Poppendieck", phoneNumber: "39-23-6423122", id: 4 },
-  ]);
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [search, setSearch] = useState("");
   const [searchedPersons, setSearchedPersons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const getPersons = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/persons");
+
+        setPersons(response.data);
+        setError("");
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getPersons();
+  }, []);
 
   const handleAddName = (e) => {
     e.preventDefault();
@@ -48,6 +62,14 @@ const App = () => {
 
     setSearchedPersons([...searchedPersons]);
   };
+
+  if (loading) {
+    return <h1>Loading..</h1>;
+  }
+
+  if (!loading && error) {
+    return <h1>{error}</h1>;
+  }
 
   return (
     <div>
