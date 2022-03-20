@@ -3,6 +3,7 @@ import axios from "axios";
 import People from "./components/People";
 import PhoneBookForm from "./components/PhoneBookForm";
 import Search from "./components/Search";
+import { createPerson, deletePerson, updatePerson } from "./services/person";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -30,7 +31,7 @@ const App = () => {
     getPersons();
   }, []);
 
-  const handleAddName = (e) => {
+  const handleAddName = async (e) => {
     e.preventDefault();
     if (!newName || !phoneNumber) return;
 
@@ -38,14 +39,17 @@ const App = () => {
       (person) => person.name.toLowerCase() === newName.toLowerCase()
     );
     if (oldPerson) {
-      alert(`${newName} already exists`);
+      // alert(`${newName} already exists`);
+      handleUpdate({ name: newName, number: phoneNumber }, oldPerson);
+
       return;
     }
 
-    setPersons([
-      ...persons,
-      { name: newName, id: window.crypto.randomUUID(), phoneNumber },
-    ]);
+    const newPerson = await createPerson({
+      name: newName,
+      number: phoneNumber,
+    });
+    setPersons([...persons, newPerson]);
     setNewName("");
     setPhoneNumber("");
   };
@@ -61,6 +65,33 @@ const App = () => {
     );
 
     setSearchedPersons([...searchedPersons]);
+  };
+
+  const handleDelete = async (id) => {
+    const userResponse = window.confirm();
+    if (!userResponse) return;
+    await deletePerson(id);
+    const newPersons = persons.filter((person) => person.id !== id);
+    setPersons([...newPersons]);
+  };
+
+  const handleUpdate = async (newPerson, oldPerson) => {
+    const userResponse = window.confirm(
+      `${oldPerson.name} is already added to phonebook, replace the old number with new one?`
+    );
+
+    if (!userResponse) return;
+
+    const updatedPerson = await updatePerson({
+      ...newPerson,
+      id: oldPerson.id,
+    });
+
+    const newPersonsArr = persons.map((person) =>
+      person.id === oldPerson.id ? { ...updatedPerson } : person
+    );
+
+    setPersons([...newPersonsArr]);
   };
 
   if (loading) {
@@ -87,7 +118,10 @@ const App = () => {
         phoneNumber={phoneNumber}
       />
 
-      <People persons={searchedPersons.length ? searchedPersons : persons} />
+      <People
+        onDelete={handleDelete}
+        persons={searchedPersons.length ? searchedPersons : persons}
+      />
     </div>
   );
 };
