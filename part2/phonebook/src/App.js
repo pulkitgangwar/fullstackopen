@@ -4,6 +4,7 @@ import People from "./components/People";
 import PhoneBookForm from "./components/PhoneBookForm";
 import Search from "./components/Search";
 import { createPerson, deletePerson, updatePerson } from "./services/person";
+import Notification from "./components/Notification";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -13,6 +14,7 @@ const App = () => {
   const [searchedPersons, setSearchedPersons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const getPersons = async () => {
@@ -50,6 +52,10 @@ const App = () => {
       number: phoneNumber,
     });
     setPersons([...persons, newPerson]);
+    setSuccessMessage(`${newPerson.name} was added to list `);
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 2000);
     setNewName("");
     setPhoneNumber("");
   };
@@ -68,7 +74,7 @@ const App = () => {
   };
 
   const handleDelete = async (id) => {
-    const userResponse = window.confirm();
+    const userResponse = window.confirm("You want to delete this record?");
     if (!userResponse) return;
     await deletePerson(id);
     const newPersons = persons.filter((person) => person.id !== id);
@@ -105,6 +111,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      {successMessage ? <Notification message={successMessage} /> : null}
       <Search
         onSearchChange={(e) => setSearch(e.target.value)}
         search={search}
