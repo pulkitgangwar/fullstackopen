@@ -74,11 +74,15 @@ const App = () => {
   };
 
   const handleDelete = async (id) => {
-    const userResponse = window.confirm("You want to delete this record?");
-    if (!userResponse) return;
-    await deletePerson(id);
-    const newPersons = persons.filter((person) => person.id !== id);
-    setPersons([...newPersons]);
+    try {
+      const userResponse = window.confirm("You want to delete this record?");
+      if (!userResponse) return;
+      await deletePerson(id);
+      const newPersons = persons.filter((person) => person.id !== id);
+      setPersons([...newPersons]);
+    } catch (err) {
+      setError("User already deleted");
+    }
   };
 
   const handleUpdate = async (newPerson, oldPerson) => {
@@ -104,14 +108,15 @@ const App = () => {
     return <h1>Loading..</h1>;
   }
 
-  if (!loading && error) {
-    return <h1>{error}</h1>;
-  }
+  // if (!loading && error) {
+  //   return <h1>{error}</h1>;
+  // }
 
   return (
     <div>
       <h2>Phonebook</h2>
       {successMessage ? <Notification message={successMessage} /> : null}
+      {!loading && error ? <Notification message={error} type="error" /> : null}
       <Search
         onSearchChange={(e) => setSearch(e.target.value)}
         search={search}
